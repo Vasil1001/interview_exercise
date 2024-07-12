@@ -91,14 +91,17 @@ export class MessageData {
     const result = await this.chatMessageModel.findByIdAndUpdate(
       { _id: messageId },
       { deleted: true },
+      {
+        new: true,
+        returnOriginal: false,
+      },
     );
     
     if (!result) {
       throw new Error('Message not found or could not be deleted');
     }
 
-    const updatedMessage = await this.getMessage(messageId.toHexString());
-    return updatedMessage;
+    return chatMessageToObject(result);
   }
 
   async resolve(messageId: ObjectID): Promise<ChatMessage> {
