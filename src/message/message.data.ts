@@ -41,7 +41,7 @@ export class MessageData {
     if (!message) throw new Error('Message not found');
     return chatMessageToObject(message);
   }
-
+  
 
   async getChatConversationMessages(
     data: GetMessageDto,
@@ -88,8 +88,17 @@ export class MessageData {
   }
 
   async delete(messageId: ObjectID): Promise<ChatMessage> {
-    // TODO allow a message to be marked as deleted
-    return new ChatMessage() // Minimum to pass ts checks -replace this
+    const result = await this.chatMessageModel.findByIdAndUpdate(
+      { _id: messageId },
+      { deleted: true },
+    );
+    
+    if (!result) {
+      throw new Error('Message not found or could not be deleted');
+    }
+
+    const updatedMessage = await this.getMessage(messageId.toHexString());
+    return updatedMessage;
   }
 
   async resolve(messageId: ObjectID): Promise<ChatMessage> {
