@@ -82,8 +82,22 @@ While we don't expect everyone to complete this part of the exercise, it will fo
 
 We'd love to hear about
 * How you would go about implementing the solution
+
+- To add tags to a message, I would first take a look at the implementation for conversation. 
+
+Then:
+1. I would add a new field on the message model, called tags, same as the conversation model.
+2. Then I would add methods/mutations to add and remove tags from a message.
+3. Implement search based on tags in the message resolver.
+
 * What problems you might encounter
+
+- Updating the tags consistently across the conversation and message models
+
 * How you would go about testing
+
+- Implement describe tests in message.spec.ts
+
 * What you might do differently
 
 # Additional

@@ -11,6 +11,7 @@ import { MessageDto, GetMessageDto } from './models/message.dto';
 import { ObjectID } from 'mongodb';
 import { createRichContent } from './utils/message.helper';
 import { MessageGroupedByConversationOutput } from '../conversation/models/messagesFilterInput';
+import { Tag } from '../conversation/models/CreateChatConversation.dto';
 
 @Injectable()
 export class MessageData {
@@ -29,6 +30,7 @@ export class MessageData {
     chatMessage.conversationId = data.conversationId;
     chatMessage.created = new Date();
     chatMessage.deleted = false;
+    chatMessage.tags = data.tags || [];
 
     createRichContent(data, chatMessage);
 
@@ -41,7 +43,40 @@ export class MessageData {
     if (!message) throw new Error('Message not found');
     return chatMessageToObject(message);
   }
-  
+
+  async addTagsToMessage(
+    messageId: ObjectID,
+    tags: Tag[],
+  ): Promise<ChatMessage> {
+    const updatedMessage = await this.chatMessageModel.findOneAndUpdate(
+      { _id: messageId },
+      { $set: { tags } },
+      { new: true },
+    );
+    if (!updatedMessage) throw new Error('Message not found');
+    return chatMessageToObject(updatedMessage);
+  }
+
+  async deleteTagsFromMessage(
+    messageId: ObjectID,
+    tagsToDelete: Tag[],
+  ): Promise<ChatMessage> {
+    const message = await this.chatMessageModel.findById(messageId);
+    if (!message) throw new Error('Message not found');
+
+    // Filter out the tags to delete
+    const updatedTags = message.tags.filter(
+      (tag) => !tagsToDelete.includes(tag),
+    );
+
+    const updatedMessage = await this.chatMessageModel.findOneAndUpdate(
+      { _id: messageId },
+      { $set: { tags: updatedTags } },
+      { new: true },
+    );
+    if (!updatedMessage) throw new Error('Message not found');
+    return chatMessageToObject(updatedMessage);
+  }
 
   async getChatConversationMessages(
     data: GetMessageDto,
@@ -96,7 +131,7 @@ export class MessageData {
         returnOriginal: false,
       },
     );
-    
+
     if (!result) {
       throw new Error('Message not found or could not be deleted');
     }
